@@ -16,6 +16,34 @@ class StreetlightDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Streetlight.objects.all()
     serializer_class = StreetlightSerializer
 
+def check_and_create_alerts(streetlight, voltage, current, power):
+    """Create alerts if readings exceed thresholds."""
+    alerts = []
+    if voltage > 250:
+        alerts.append(Alert(
+            streetlight=streetlight,
+            alert_type='overvoltage',
+            message=f'Voltage {voltage}V exceeds 250V',
+            severity='high'
+        ))
+    elif voltage < 180:
+        alerts.append(Alert(
+            streetlight=streetlight,
+            alert_type='undervoltage',
+            message=f'Voltage {voltage}V below 180V',
+            severity='medium'
+        ))
+    if power < 10 and current < 0.1:
+        alerts.append(Alert(
+            streetlight=streetlight,
+            alert_type='faulty_light',
+            message=f'Power {power}W indicates light may be off or broken',
+            severity='high'
+        ))
+    if alerts:
+        Alert.objects.bulk_create(alerts)
+    return alerts
+
 class ESP32ReadingView(APIView):
     def post(self, request):
         token = request.data.get('token')
@@ -25,13 +53,25 @@ class ESP32ReadingView(APIView):
         except DeviceToken.DoesNotExist:
             return Response({"error": "Invalid or inactive token"}, status=401)
 
+        voltage = request.data.get('voltage')
+        current = request.data.get('current')
+        power = request.data.get('power')
+        energy_wh = request.data.get('energy_wh', 0)
+
+        if None in (voltage, current, power):
+            return Response({"error": "voltage, current, power are required"}, status=400)
+
         reading = SensorReading.objects.create(
             streetlight=streetlight,
-            voltage=request.data['voltage'],
-            current=request.data['current'],
-            power=request.data['power'],
-            energy_wh=request.data.get('energy_wh', 0)
+            voltage=voltage,
+            current=current,
+            power=power,
+            energy_wh=energy_wh
         )
+
+        # Automatically create alerts based on thresholds
+        check_and_create_alerts(streetlight, voltage, current, power)
+
         return Response({"status": "ok", "reading_id": reading.id}, status=201)
 
 class SensorReadingList(generics.ListAPIView):
@@ -82,34 +122,3 @@ class DashboardSummary(APIView):
             'total_savings_kwh': total_savings,
             'unresolved_alerts': unresolved_alerts,
         })
-
-def check_and_create_alerts(streetlight, voltage, current, power):
-    """Create alerts if readings exceed thresholds."""
-    alerts = []
-    if voltage > 250:
-        alerts.append(Alert(
-            streetlight=streetlight,
-            alert_type='overvoltage',
-            message=f'Voltage {voltage}V exceeds 250V',
-            severity='high'
-        ))
-    elif voltage < 180:
-        alerts.append(Alert(
-            streetlight=streetlight,
-            alert_type='undervoltage',
-            message=f'Voltage {voltage}V below 180V',
-            severity='medium'
-        ))
-    if power < 10 and current < 0.1:
-        alerts.append(Alert(
-            streetlight=streetlight,
-            alert_type='faulty_light',
-            message=f'Power {power}W indicates light may be off or broken',
-            severity='high'
-        ))
-    if alerts:
-        Alert.objects.bulk_create(alerts)
-    return alerts
-
-# Replace your existing ESP32ReadingView.post method with this enhanced version
-# (or manually edit the file to add the call to check_and_create_alerts)
