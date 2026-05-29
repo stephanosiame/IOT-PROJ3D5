@@ -82,3 +82,34 @@ class DashboardSummary(APIView):
             'total_savings_kwh': total_savings,
             'unresolved_alerts': unresolved_alerts,
         })
+
+def check_and_create_alerts(streetlight, voltage, current, power):
+    """Create alerts if readings exceed thresholds."""
+    alerts = []
+    if voltage > 250:
+        alerts.append(Alert(
+            streetlight=streetlight,
+            alert_type='overvoltage',
+            message=f'Voltage {voltage}V exceeds 250V',
+            severity='high'
+        ))
+    elif voltage < 180:
+        alerts.append(Alert(
+            streetlight=streetlight,
+            alert_type='undervoltage',
+            message=f'Voltage {voltage}V below 180V',
+            severity='medium'
+        ))
+    if power < 10 and current < 0.1:
+        alerts.append(Alert(
+            streetlight=streetlight,
+            alert_type='faulty_light',
+            message=f'Power {power}W indicates light may be off or broken',
+            severity='high'
+        ))
+    if alerts:
+        Alert.objects.bulk_create(alerts)
+    return alerts
+
+# Replace your existing ESP32ReadingView.post method with this enhanced version
+# (or manually edit the file to add the call to check_and_create_alerts)
