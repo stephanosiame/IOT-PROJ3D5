@@ -1,0 +1,90 @@
+/* Change the site header background to green */
+#header {
+    background: #1a7a3a !important;
+    border-bottom: 2px solid #0d5a2a !important;
+}
+
+#header a, #header a:link, #header a:visited {
+    color: #ffffff !important;
+}
+
+#header a:hover {
+    color: #d4edda !important;
+}
+
+/* Change the login button and primary buttons */
+.submit-row input[type="submit"], .button, input[type="submit"], .button.default {
+    background: #1a7a3a !important;
+    border-color: #0d5a2a !important;
+    color: #fff !important;
+}
+.submit-row input[type="submit"]:hover, .button:hover, input[type="submit"]:hover, .button.default:hover {
+    background: #0d5a2a !important;
+}
+
+/* Change the module headers and tabs */
+.module h2, .module caption, .inline-group h2 {
+    background: #1a7a3a !important;
+    color: #fff !important;
+}
+
+/* Change the breadcrumbs background */
+div.breadcrumbs {
+    background: #2d8a4a !important;
+    color: #ffffff !important;
+}
+div.breadcrumbs a {
+    color: #d4edda !important;
+}
+
+/* Change the sidebar filter colors */
+#changelist-filter li.selected a {
+    color: #1a7a3a !important;
+}
+#changelist-filter a:focus, #changelist-filter a:hover {
+    color: #0d5a2a !important;
+}
+
+/* Change the object tools (add buttons) */
+.object-tools a {
+    background: #1a7a3a !important;
+    border-color: #0d5a2a !important;
+}
+.object-tools a:hover {
+    background: #0d5a2a !important;
+}
+
+/* Change the paginator and links */
+.paginator a:link, .paginator a:visited {
+    color: #1a7a3a !important;
+}
+.paginator a:hover {
+    color: #0d5a2a !important;
+}
+
+/* Change the calendar and time picker colors */
+.calendar td.selected a, .calendar td a:active, .calendar td a:focus, .calendar td a:hover {
+    background: #1a7a3a !important;
+}
+.calendar td a:link, .calendar td a:visited {
+    color: #1a7a3a !important;
+}
+.timelist a:link, .timelist a:visited {
+    color: #1a7a3a !important;
+}
+.timelist a:hover {
+    color: #0d5a2a !important;
+}
+
+/* Change the "view site" link */
+#user-tools a:focus, #user-tools a:hover {
+    color: #d4edda !important;
+}
+
+/* Change the row colors (optional) */
+tr:nth-child(even) {
+    background-color: #f0faf4 !important;
+}
+tr:nth-child(odd) {
+    background-color: #ffffff !important;
+}
