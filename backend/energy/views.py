@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from django.db import models
 from .models import Streetlight, SensorReading, Alert, EnergyLog, DeviceToken
 from .serializers import (
@@ -45,6 +46,7 @@ def check_and_create_alerts(streetlight, voltage, current, power):
     return alerts
 
 class ESP32ReadingView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         token = request.data.get('token')
         try:
@@ -69,7 +71,6 @@ class ESP32ReadingView(APIView):
             energy_wh=energy_wh
         )
 
-        # Automatically create alerts based on thresholds
         check_and_create_alerts(streetlight, voltage, current, power)
 
         return Response({"status": "ok", "reading_id": reading.id}, status=201)
