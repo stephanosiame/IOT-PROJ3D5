@@ -1,3 +1,4 @@
+cat > energy/admin.py << 'ADMINEOF'
 from django.contrib import admin
 from .models import (
     Streetlight,
@@ -56,3 +57,4 @@ class DeviceTokenAdmin(admin.ModelAdmin):
 class SettingAdmin(admin.ModelAdmin):
     list_display = ('key', 'value', 'updated_at')
     search_fields = ('key', 'value')
+ADMINEOF

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DashboardSummary, Streetlight, SensorReading, Alert, EnergyLog } from '../types';
+import { DashboardSummary, Streetlight, SensorReading, Alert, EnergyLog, User } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
 
@@ -83,3 +83,7 @@ export const registerUser = (userData: any) => api.post('/api/accounts/register/
 export const getUsers = () => api.get('/api/accounts/users/');
 
 export default api;
+
+export const getSettings = () => api.get('/api/settings/');
+
+export const getCurrentUser = () => api.get<User>('/api/accounts/me/');

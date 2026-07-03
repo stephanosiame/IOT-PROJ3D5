@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getStreetlights, getEnergyLogs, getAlerts, getReadings } from '../services/api';
-import { Streetlight, EnergyLog, Alert, SensorReading } from '../types';
+import { Streetlight, Alert, SensorReading } from '../types';
 
 interface AreaStats {
+  id?: number;
   name: string;
   lights: Streetlight[];
   totalLights: number;
@@ -38,31 +39,37 @@ const MapView: React.FC = () => {
         setAllAlerts(alerts);
         setAllReadings(readings);
 
-        // Today's logs
         const today = new Date().toISOString().slice(0, 10);
         const todaysLogs = logs.filter(log => log.log_date === today);
 
-        // Group lights by area
-        const areaMap = new Map<string, Streetlight[]>();
+        // Group by area using the 'area' field
+        const areaMap = new Map<string, { areaId?: number; lights: Streetlight[] }>();
         lights.forEach(light => {
-          const area = light.location.split(',')[0]?.trim() || 'Unassigned';
-          if (!areaMap.has(area)) areaMap.set(area, []);
-          areaMap.get(area)!.push(light);
+          const areaName = light.area?.name || 'Unassigned';
+          const areaId = light.area?.id;
+          if (!areaMap.has(areaName)) {
+            areaMap.set(areaName, { areaId, lights: [] });
+          }
+          areaMap.get(areaName)!.lights.push(light);
         });
 
         const areaStats: AreaStats[] = [];
-        areaMap.forEach((lightList, areaName) => {
-          const lightIds = lightList.map(l => l.id);
+        areaMap.forEach(({ areaId, lights }, areaName) => {
+          const lightIds = lights.map(l => l.id);
 
-          // Damaged: lights with high severity alerts, faulty_light, or offline / power < 5
-          const damaged = lightList.filter(light => {
-            const hasAlert = alerts.some(a => a.streetlight === light.id && !a.is_resolved && (a.severity === 'high' || a.alert_type === 'faulty_light'));
+          // Damaged: only if there is a high-severity alert and a reading exists
+          const damaged = lights.filter(light => {
             const reading = readings.find(r => r.streetlight === light.id);
-            if (!reading) return true;
+            if (!reading) return false;
+            const hasAlert = alerts.some(a => 
+              a.streetlight === light.id && !a.is_resolved && 
+              (a.severity === 'high' || a.alert_type === 'faulty_light')
+            );
+            if (hasAlert) return true;
             const diffMinutes = (Date.now() - new Date(reading.timestamp).getTime()) / (1000 * 60);
-            if (diffMinutes > 5) return true;
-            if (reading.power < 5) return true;
-            return hasAlert;
+            if (diffMinutes > 5) return false;
+            if (reading.power < 5) return false;
+            return false;
           }).length;
 
           let consumption = 0, savings = 0;
@@ -77,9 +84,10 @@ const MapView: React.FC = () => {
           const efficiency = total > 0 ? (savings / total) * 100 : 0;
 
           areaStats.push({
+            id: areaId,
             name: areaName,
-            lights: lightList,
-            totalLights: lightList.length,
+            lights,
+            totalLights: lights.length,
             damaged,
             consumption,
             savings,
@@ -122,7 +130,7 @@ const MapView: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {areas.map((area) => (
-            <div key={area.name} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden">
+            <div key={area.id || area.name} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden">
               <div className="p-4 border-b">
                 <h3 className="text-lg font-semibold">{area.name}</h3>
               </div>
@@ -177,7 +185,7 @@ const MapView: React.FC = () => {
                     let status = 'Active';
                     let color = 'text-green-600';
                     if (hasAlert) { status = '⚠️ Alert'; color = 'text-red-600'; }
-                    else if (!reading) { status = 'Offline'; color = 'text-gray-400'; }
+                    else if (!reading) { status = 'No data'; color = 'text-gray-400'; }
                     else if (reading.power < 5) { status = 'Off'; color = 'text-gray-500'; }
                     else if (reading.power < 30) { status = 'Dimmed'; color = 'text-yellow-600'; }
                     const lastReading = reading ? `${reading.voltage.toFixed(1)}V / ${reading.current.toFixed(2)}A` : '—';

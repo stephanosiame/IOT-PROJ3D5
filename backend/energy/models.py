@@ -6,6 +6,7 @@ User = get_user_model()
 class Streetlight(models.Model):
     light_id = models.CharField(max_length=50, unique=True)
     location = models.CharField(max_length=200)
+    area = models.ForeignKey("Area", on_delete=models.SET_NULL, null=True, blank=True, related_name="streetlights")
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -55,3 +56,21 @@ class DeviceToken(models.Model):
 
     def __str__(self):
         return f"Token for {self.streetlight.light_id}"
+
+class Setting(models.Model):
+    key = models.CharField(max_length=100, unique=True)
+    value = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"
+
+class Area(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

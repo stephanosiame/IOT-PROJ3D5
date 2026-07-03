@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/alerts/<int:pk>/resolve/', views.ResolveAlertView.as_view(), name='resolve-alert'),
     path('api/energylogs/', views.EnergyLogList.as_view(), name='energylog-list'),
     path('api/dashboard/', views.DashboardSummary.as_view(), name='dashboard'),
+    path('api/settings/', views.SettingsView.as_view(), name='settings'),
 ]

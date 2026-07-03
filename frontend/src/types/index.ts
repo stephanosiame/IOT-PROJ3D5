@@ -1,3 +1,9 @@
+export interface Area {
+  id: number;
+  name: string;
+  description?: string;
+}
+
 export interface Streetlight {
   id: number;
   light_id: string;
@@ -6,6 +12,8 @@ export interface Streetlight {
   longitude: number | null;
   is_active: boolean;
   installed_date: string;
+  area?: Area | null;
+  area_id?: number | null;
 }
 
 export interface SensorReading {
@@ -48,7 +56,16 @@ export interface DashboardSummary {
   unresolved_alerts: number;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+}
+
 export interface AuthResponse {
   token: string;
-  user: { id: number; username: string; role: string; };
+  user: User;
 }

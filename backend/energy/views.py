@@ -3,10 +3,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.db import models
-from .models import Streetlight, SensorReading, Alert, EnergyLog, DeviceToken
+from .models import (
+    Streetlight,
+    SensorReading,
+    Alert,
+    EnergyLog,
+    DeviceToken,
+    Setting
+)
 from .serializers import (
-    StreetlightSerializer, SensorReadingSerializer,
-    AlertSerializer, EnergyLogSerializer
+    StreetlightSerializer,
+    SensorReadingSerializer,
+    AlertSerializer,
+    EnergyLogSerializer
 )
 
 class StreetlightListCreate(generics.ListCreateAPIView):
@@ -123,3 +132,10 @@ class DashboardSummary(APIView):
             'total_savings_kwh': total_savings,
             'unresolved_alerts': unresolved_alerts,
         })
+
+class SettingsView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        settings = Setting.objects.all()
+        data = {s.key: s.value for s in settings}
+        return Response(data)

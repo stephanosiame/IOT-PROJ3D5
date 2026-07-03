@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from energy.models import SensorReading, EnergyLog, Streetlight
+from energy.utils import get_setting
 from datetime import timedelta
 
 class Command(BaseCommand):
@@ -14,6 +15,8 @@ class Command(BaseCommand):
 
         start_date = first_reading.timestamp.date()
         end_date = timezone.now().date()
+        baseline = float(get_setting('BASELINE_KWH', 5.0))
+        cost_per_kwh = float(get_setting('COST_PER_KWH', 224.0))
 
         for light in Streetlight.objects.all():
             current_date = start_date
@@ -33,9 +36,8 @@ class Command(BaseCommand):
                     total_wh = avg_power * hours_operating
 
                 kWh_consumed = total_wh / 1000.0
-                baseline = 5.0  # placeholder baseline (kWh per day)
                 kWh_saved = max(0, baseline - kWh_consumed)
-                cost_used = kWh_consumed * 0.12  # $0.12 per kWh
+                cost_used = kWh_consumed * cost_per_kwh
 
                 EnergyLog.objects.update_or_create(
                     streetlight=light,
